@@ -2,8 +2,11 @@ package com.epam.task05.logic;
 
 import com.epam.task05.comparators.CompositeComparatorByChildrenNumber;
 import com.epam.task05.comparators.LeafComparatorByLength;
+import com.epam.task05.comparators.StringComparatorByGivenCharCount;
 import com.epam.task05.entities.Component;
 import com.epam.task05.entities.Composite;
+import com.epam.task05.entities.Leaf;
+import com.epam.task05.entities.TokenType;
 import com.epam.task05.parser.ParagraphParser;
 import com.epam.task05.parser.SentenceParser;
 import com.epam.task05.parser.TextParser;
@@ -17,6 +20,7 @@ import java.util.List;
 public class TextLogic {
     private DataReader reader;
     private TextParser textParser;
+    private static final String REGEXP_NUMBER = "\\d+";
 
     public TextLogic() {
         this.reader = new DataReader();
@@ -57,7 +61,26 @@ public class TextLogic {
         return new Composite(sortedText);
     }
 
-    public List<Component> sortTokensBySymbolCount() {
-        return null;
+    public Component sortTokensByCharacterCount(Composite sentence, char character) {
+        List<Component> tokens = sentence.getChildren();
+        List<String> tokensStrings = new ArrayList<>();
+        tokens.stream().forEach(token -> {
+            Leaf tokenLeaf = (Leaf) token;
+            String word = tokenLeaf.toString();
+            tokensStrings.add(word);
+        });
+        tokensStrings.sort(new StringComparatorByGivenCharCount(character));
+        List<Component> sortedTokens = new ArrayList<>();
+        tokensStrings.forEach(token -> {
+            Leaf leaf;
+            if (token.matches(REGEXP_NUMBER)) {
+                leaf = new Leaf(token, TokenType.EXPRESSION);
+            } else {
+                leaf = new Leaf(token, TokenType.WORD);
+            }
+            sortedTokens.add(leaf);
+        });
+        return new Composite(sortedTokens);
     }
+
 }
